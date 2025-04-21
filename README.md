@@ -1,2 +1,1 @@
-"# DiscordBeepBot" 
-"# DiscordBeepBot" 
+Discord Beep Bot
