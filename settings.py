@@ -1,0 +1,5 @@
+BOTKEY = ""
+APP_SECRET = ""
+HASH_SECRET = ""
+BASE_DOMAIN = ""
+BASE_URL = "https://"+BASE_DOMAIN

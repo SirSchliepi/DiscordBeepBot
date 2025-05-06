@@ -125,8 +125,7 @@ class UserManagement:
         userid = user
         if not isinstance(user, int):
             userid = user.id
-
-
+        
         if userid in self.privs["global"]["owner"]: return UserManagement.QUIZ_BOT_OWNER
         if userid in self.privs["global"]["admin"]: return UserManagement.QUIZ_BOT_ADMIN
         
@@ -141,13 +140,18 @@ class UserManagement:
         
         if not guild:
             return self.USER
+    
+        guildid = guild
+        if not isinstance(guild, str) and not isinstance(guild, int):
+            guildid = guild.id
+
         
         mpriv = self.privs["guilds"]
         
-        if guild.id not in mpriv:
+        if guildid not in mpriv:
             return self.USER
         
-        gpriv = self.privs["guilds"][guild.id]
+        gpriv = self.privs["guilds"][guildid]
         
         if userid in gpriv["owner"]: return UserManagement.QUIZ_SERVER_OWNER
         if userid in gpriv["admin"]: return UserManagement.QUIZ_SERVER_ADMIN

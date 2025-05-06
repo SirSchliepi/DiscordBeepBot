@@ -61,7 +61,7 @@ class QuizException(Exception):
 class Answer:
     def __init__(self, answer: str, correct=False):
         if len(answer) > 50:
-            raise QuizException("Answer exceeded max (>50)")
+            raise QuizException("Answer exceeded max (>50) :" + answer)
         self.answer = answer
         self.correct = correct
         self.commited = False
@@ -158,7 +158,12 @@ class Question:
 
         if not self.uuid or self.uuid == "":
             self.uuid = get_uuid()
-            
+        
+        if self.sourcecode:
+            self.sourcecode=str(self.sourcecode).replace('```','')
+            if not self.sourcecode or self.sourcecode == "None":
+                self.sourcecode=""
+                
         self.timeout = max(0,self.timeout)
         self.timeout = min(GLOBAL_MAX_TIMEOUT,self.timeout)
 
@@ -221,14 +226,23 @@ class Pool:
             catlist.extend(q.get_categories())
         self.catlist= list(set(catlist))  
 
-    def get_questions(self, category=None):
+    def count_category_questions(self):
+        res = {}
+        for n, q in self.questions:
+            for c in q.get_categories():
+                res[c] = res.get(c,0)+1
+        return res
+
+    def get_questions(self, category=None, shuffle=True):
         qlist = []
         for nr, q in self.questions:
             if category and not q.is_category(category):
                 continue
             qlist.append(q)
 
-        random.shuffle(qlist)
+        if shuffle:
+            random.shuffle(qlist)
+            
         return qlist
 
     def get_question_by_uuid(self, uuid:str):
@@ -265,7 +279,7 @@ class Pool:
         for nr,quest in self.questions:
             if quest.uuid == q.uuid:
                 continue
-            if q.compare(quest) > 0.85:
+            if q.compare(quest) > 0.93:
                 found.append(quest)
         return found
 
@@ -305,8 +319,8 @@ class Pool:
                 
             mp.gen_catlist()
             return mp
-        except:
-            raise QuizException("JSON not correctly formatted")
+        except Exception as error:
+            raise QuizException("JSON not correctly formatted " + str(error))
 
         
 class SessionGuess:
@@ -356,6 +370,14 @@ class QuizSessionQuestion:
     def anz_guesses(self):
         return len(self.guesses)
     
+    def anz_correct_guesses(self):
+        anz=0
+        c_list = self.question.get_correct_list()
+        for user, answer in self.guesses.items():
+            if set(answer["answer"]) == set(c_list):
+                anz+=1
+        return anz
+                
     def close(self):
         self.open=False
     

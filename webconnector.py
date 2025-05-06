@@ -1,4 +1,5 @@
 from datetime import datetime
+import settings
 import hashlib
 import asyncio
 import base64
@@ -6,11 +7,6 @@ import os
 import requests
 import json
 
-
-APP_SECRET = ""
-HASH_SECRET = ""
-BASE_DOMAIN = "beepbot.org"
-BASE_URL = "https://"+BASE_DOMAIN
    
 class QuizBotException(Exception):
     def __init__(self, message):
@@ -24,7 +20,7 @@ class WebConnector:
     
     def generate_hourly_hash(self):
         current_hour = datetime.now().strftime("%Y%m%d%H")
-        key_string = HASH_SECRET + current_hour
+        key_string = settings.HASH_SECRET + current_hour
         hash_obj = hashlib.sha256(key_string.encode('utf-8'))
         return hash_obj.hexdigest()
 
@@ -36,11 +32,11 @@ class WebConnector:
 
     async def load_json(self, code):
         params = {
-            "key": APP_SECRET,
+            "key": settings.APP_SECRET,
             "code": code
         }
         
-        response = await self.fetch(BASE_URL + "/load.php", params)
+        response = await self.fetch(settings.BASE_URL + "/load.php", params)
         if response.status_code != 200:
             raise QuizBotException(f"Fehler beim Abrufen der Quiz-Daten: {response.status_code} {response.text}")
 
@@ -49,10 +45,10 @@ class WebConnector:
 
     async def load_image(self, image_filename):
         params = {
-            "key": APP_SECRET,
+            "key": settings.APP_SECRET,
             "image": image_filename
         }
-        response = await self.fetch(BASE_URL + "/load.php", params)
+        response = await self.fetch(settings.BASE_URL + "/load.php", params)
         
         if response.status_code != 200:
             raise QuizBotException(f"Fehler beim Laden des Bildes: {response.status_code} {response.text}")
@@ -83,7 +79,7 @@ class WebConnector:
     
     async def send_to_server(self, json_data):
         headers = {"Content-Type": "application/json"}
-        response = requests.post(BASE_URL + "/quiz.php?key="+APP_SECRET, data=json.dumps(json_data), headers=headers)
+        response = requests.post(settings.BASE_URL + "/quiz.php?key="+settings.APP_SECRET, data=json.dumps(json_data), headers=headers)
         if response.status_code != 200:
             raise Exception(f"Fehler beim Laden.")
         return response.text
